@@ -496,6 +496,9 @@
       text-align: center;
       margin: auto;
     }
+    .btn-quebra {
+    color: red; /* muda só a cor do texto do botão */
+    }
   </style>
 </head>
 <body>
@@ -591,7 +594,7 @@
       </div>
       <div id="modal-puzzle" class="game-modal">
         <div class="game-content">
-          <button class="close-btn" onclick="fecharJogo()">&times;</button>
+         <button class="btn-quebra" onclick="abrirModal('quebra-cabeca')">Quebra-Cabeça</button>
           <h3 style="color:var(--roxo);">Quebra-Cabeça</h3>
           <p>Arraste as peças para montar a imagem!</p>
           <div class="puzzle-board" id="puzzle-board"></div>
@@ -730,144 +733,311 @@
         document.getElementById('write-result').textContent = '';
       }
     }
-    // Jogo da Memória simples
-    const memoryEmojis = ['🍎','🍌','🍇','🍉','🍓','🍊','🍍','🥝'];
-    let memoryCards = [];
-    let memoryFlipped = [];
-    let memoryMatched = [];
-    let memoryLock = false;
-    function shuffle(arr) {
-      for(let i=arr.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [arr[i],arr[j]]=[arr[j],arr[i]];
-      }
-    }
-    function initMemoryGame() {
-      memoryCards = [...memoryEmojis, ...memoryEmojis];
-      shuffle(memoryCards);
-      memoryFlipped = [];
-      memoryMatched = [];
-      memoryLock = false;
-      const board = document.getElementById('memory-board');
-      board.innerHTML = '';
-      document.getElementById('memory-message').textContent = '';
-      memoryCards.forEach((emoji, idx) => {
-        const card = document.createElement('div');
-        card.className = 'memory-card';
-        card.dataset.idx = idx;
-        card.onclick = () => flipMemoryCard(idx, card);
-        card.textContent = '';
-        board.appendChild(card);
-      });
-    }
-    function flipMemoryCard(idx, cardElem) {
-      if(memoryLock) return;
-      if(memoryMatched.includes(idx) || memoryFlipped.includes(idx)) return;
-      cardElem.textContent = memoryCards[idx];
-      cardElem.classList.add('flipped');
-      memoryFlipped.push(idx);
-      if(memoryFlipped.length === 2) {
-        memoryLock = true;
-        setTimeout(()=>{
-          const [i1,i2] = memoryFlipped;
-          const c1 = document.querySelector(`.memory-card[data-idx="${i1}"]`);
-          const c2 = document.querySelector(`.memory-card[data-idx="${i2}"]`);
-          if(memoryCards[i1] === memoryCards[i2]) {
-            c1.classList.add('matched');
-            c2.classList.add('matched');
-            memoryMatched.push(i1,i2);
-            if(memoryMatched.length === memoryCards.length) {
-              document.getElementById('memory-message').textContent = 'Parabéns! Você encontrou todos os pares!';
-            }
-          } else {
-            c1.textContent = '';
-            c2.textContent = '';
-            c1.classList.remove('flipped');
-            c2.classList.remove('flipped');
-          }
-          memoryFlipped = [];
-          memoryLock = false;
-        }, 900);
-      }
-    }
-    // Quebra-Cabeça simples (3x3)
-    const puzzleImg = "https://img.icons8.com/color/96/000000/apple--v1.png";
-    function initPuzzleGame() {
-      const board = document.getElementById('puzzle-board');
-      board.innerHTML = '';
-      document.getElementById('puzzle-message').textContent = '';
-      let pieces = [];
-      for(let i=0;i<9;i++) pieces.push(i);
-      shuffle(pieces);
-      pieces.forEach((n,idx)=>{
-        const piece = document.createElement('div');
-        piece.className = 'puzzle-piece';
-        piece.draggable = true;
-        piece.dataset.idx = idx;
-        piece.dataset.n = n;
-        piece.style.background = `url(${puzzleImg})`;
-        piece.style.backgroundSize = "240px 240px";
-        piece.style.backgroundPosition = `${-(n%3)*80}px ${-Math.floor(n/3)*80}px`;
-        piece.ondragstart = e => {
-          piece.classList.add('dragging');
-          e.dataTransfer.setData('text/plain', idx);
-        };
-        piece.ondragend = () => piece.classList.remove('dragging');
-        const dropzone = document.createElement('div');
-        dropzone.className = 'puzzle-drop';
-        dropzone.ondragover = e => e.preventDefault();
-        dropzone.ondrop = e => {
-          e.preventDefault();
-          const fromIdx = +e.dataTransfer.getData('text/plain');
-          swapPuzzlePieces(fromIdx, idx);
-        };
-        dropzone.appendChild(piece);
-        board.appendChild(dropzone);
-      });
-    }
-    function swapPuzzlePieces(fromIdx, toIdx) {
-      const board = document.getElementById('puzzle-board');
-      const drops = Array.from(board.children);
-      const fromPiece = drops[fromIdx].firstChild;
-      const toPiece = drops[toIdx].firstChild;
-      drops[fromIdx].appendChild(toPiece);
-      drops[toIdx].appendChild(fromPiece);
-      checkPuzzleWin();
-    }
-    function checkPuzzleWin() {
-      const board = document.getElementById('puzzle-board');
-      const drops = Array.from(board.children);
-      let win = true;
-      drops.forEach((drop,i)=>{
-        if(drop.firstChild.dataset.n != i) win = false;
-      });
-      if(win) document.getElementById('puzzle-message').textContent = "Parabéns! Você montou o quebra-cabeça!";
-    }
-    // Escrever a Imagem
-    const writeImgs = [
-      {src:"https://img.icons8.com/color/96/000000/apple--v1.png", nome:"maçã"},
-      {src:"https://img.icons8.com/color/96/000000/banana.png", nome:"banana"},
-      {src:"https://img.icons8.com/color/96/000000/grapes.png", nome:"uva"},
-      {src:"https://img.icons8.com/color/96/000000/watermelon.png", nome:"melancia"}
-    ];
-    let writeIdx = 0;
-    function checkWriteImg() {
-      const input = document.getElementById('write-input').value.trim().toLowerCase();
-      const result = document.getElementById('write-result');
-      if(input === writeImgs[writeIdx].nome) {
-        result.textContent = "Correto! Muito bem!";
-        result.style.color = "var(--verde-agua)";
-        setTimeout(()=>{
-          writeIdx = (writeIdx+1)%writeImgs.length;
-          document.getElementById('write-img').src = writeImgs[writeIdx].src;
-          document.getElementById('write-input').value = '';
-          result.textContent = '';
-        }, 1200);
+// Lista de imagens para o jogo da memória
+const memoryImgs = [
+  "https://img.icons8.com/color/96/000000/apple--v1.png",
+  "https://img.icons8.com/color/96/000000/banana.png",
+  "https://img.icons8.com/color/96/000000/cherry.png",
+  "https://img.icons8.com/color/96/000000/watermelon.png",
+  "https://img.icons8.com/color/96/000000/strawberry.png",
+  "https://img.icons8.com/color/96/000000/dog.png",
+  "https://img.icons8.com/color/96/000000/cat.png",
+  "https://img.icons8.com/color/96/000000/car--v1.png",
+  "https://img.icons8.com/color/96/000000/football.png",
+  "https://img.icons8.com/color/96/000000/deciduous-tree.png",
+  "https://img.icons8.com/color/96/000000/book.png",
+  "https://img.icons8.com/color/96/000000/house.png",
+  "https://img.icons8.com/color/96/000000/sun.png",
+  "https://img.icons8.com/color/96/000000/moon-symbol.png",
+  "https://img.icons8.com/color/96/000000/bicycle.png",
+  "https://img.icons8.com/color/96/000000/airplane-take-off.png",
+  "https://img.icons8.com/color/96/000000/camera.png",
+  "https://img.icons8.com/color/96/000000/heart.png",
+  "https://img.icons8.com/color/96/000000/motorbike.png",
+  "https://img.icons8.com/color/96/000000/rocket.png"
+];
+
+let memoryLevel = 1;            
+let memoryCards = [];
+let memoryFlipped = [];
+let memoryMatched = [];
+let memoryLock = false;
+
+function initMemoryGame() {
+  const board = document.getElementById('memory-board');
+  const message = document.getElementById('memory-message');
+  board.innerHTML = '';
+  message.textContent = '';
+
+  // Quantidade de cartas por nível (8, 16, 24, ...)
+  let totalCards = memoryLevel * 8;  
+  let pairs = totalCards / 2;
+
+  // Se não tiver imagens suficientes, limita
+  if (pairs > memoryImgs.length) pairs = memoryImgs.length;
+
+  // Seleciona imagens
+  let selected = memoryImgs.slice(0, pairs);
+  memoryCards = [...selected, ...selected]; 
+  shuffle(memoryCards);
+
+  memoryFlipped = [];
+  memoryMatched = [];
+  memoryLock = false;
+
+  // Ajusta grid de acordo com o número de cartas
+  board.style.gridTemplateColumns = `repeat(${Math.sqrt(totalCards)}, 1fr)`;
+
+  // Cria tabuleiro
+  memoryCards.forEach((img, idx) => {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.textContent = "?";
+    card.onclick = () => flipMemoryCard(idx, card);
+    board.appendChild(card);
+  });
+
+  // Adiciona botão de reiniciar se não existir
+  if (!document.getElementById('restart-btn')) {
+    const restartBtn = document.createElement('button');
+    restartBtn.id = "restart-btn";
+    restartBtn.textContent = "🔄 Reiniciar Jogo";
+    restartBtn.style.marginTop = "15px";
+    restartBtn.style.padding = "10px 20px";
+    restartBtn.style.border = "none";
+    restartBtn.style.borderRadius = "8px";
+    restartBtn.style.background = "var(--verde-agua)";
+    restartBtn.style.color = "#fff";
+    restartBtn.style.cursor = "pointer";
+    restartBtn.onclick = restartMemoryGame;
+    document.getElementById('memory-container').appendChild(restartBtn);
+  }
+}
+
+function flipMemoryCard(idx, cardElem) {
+  if (memoryLock) return;
+  if (memoryMatched.includes(idx) || memoryFlipped.includes(idx)) return;
+
+  cardElem.innerHTML = `<img src="${memoryCards[idx]}" alt="carta">`;
+  cardElem.classList.add('flipped');
+  memoryFlipped.push(idx);
+
+  if (memoryFlipped.length === 2) {
+    memoryLock = true;
+    setTimeout(() => {
+      const [a, b] = memoryFlipped;
+      if (memoryCards[a] === memoryCards[b]) {
+        memoryMatched.push(a, b);
       } else {
-        result.textContent = "Tente novamente!";
-        result.style.color = "var(--rosa)";
+        const cards = document.querySelectorAll('.memory-card');
+        cards[a].textContent = "?";
+        cards[b].textContent = "?";
+        cards[a].classList.remove('flipped');
+        cards[b].classList.remove('flipped');
+      }
+      memoryFlipped = [];
+      memoryLock = false;
+      checkMemoryWin();
+    }, 800);
+  }
+}
+
+function checkMemoryWin() {
+  if (memoryMatched.length === memoryCards.length) {
+    const message = document.getElementById('memory-message');
+    if ((memoryLevel + 1) * 8 <= memoryImgs.length * 2) {
+      message.textContent = `🎉 Parabéns! Você concluiu o nível ${memoryLevel}! Indo para o próximo...`;
+      memoryLevel++;
+      setTimeout(initMemoryGame, 1500);
+    } else {
+      message.textContent = "🏆 Parabéns! Você completou todos os níveis!";
+    }
+  }
+}
+
+// Reiniciar jogo para o nível 1
+function restartMemoryGame() {
+  memoryLevel = 1;
+  initMemoryGame();
+  document.getElementById('memory-message').textContent = "🔄 Jogo reiniciado!";
+}
+
+// Função utilitária para embaralhar
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+
+// Lista de imagens para o quebra-cabeça
+const puzzleImgs = [
+  "https://img.icons8.com/color/96/000000/apple--v1.png",       // maçã
+  "https://img.icons8.com/color/96/000000/banana.png",          // banana
+  "https://img.icons8.com/color/96/000000/cherry.png",          // cereja
+  "https://img.icons8.com/color/96/000000/watermelon.png",      // melancia
+  "https://img.icons8.com/color/96/000000/strawberry.png",      // morango
+  "https://img.icons8.com/color/96/000000/dog.png",             // cachorro
+  "https://img.icons8.com/color/96/000000/cat.png",             // gato
+  "https://img.icons8.com/color/96/000000/car--v1.png",         // carro
+  "https://img.icons8.com/color/96/000000/football.png",        // bola
+  "https://img.icons8.com/color/96/000000/deciduous-tree.png",  // árvore
+  "https://img.icons8.com/color/96/000000/book.png",            // livro
+  "https://img.icons8.com/color/96/000000/house.png",           // casa
+  "https://img.icons8.com/color/96/000000/sun.png",             // sol
+  "https://img.icons8.com/color/96/000000/moon-symbol.png"      // lua
+];
+
+let puzzleImg = puzzleImgs[0]; // default
+
+
+function initPuzzleGame() {
+  const board = document.getElementById('puzzle-board');
+  board.innerHTML = '';
+  document.getElementById('puzzle-message').textContent = '';
+
+  // Sorteia uma imagem da lista
+  puzzleImg = puzzleImgs[Math.floor(Math.random() * puzzleImgs.length)];
+
+  let pieces = [];
+  for (let i = 0; i < 9; i++) pieces.push(i);
+  shuffle(pieces);
+
+  pieces.forEach((n, idx) => {
+    const piece = document.createElement('div');
+    piece.className = 'puzzle-piece';
+    piece.draggable = true;
+    piece.dataset.n = n;
+    piece.style.background = `url(${puzzleImg})`;
+    piece.style.backgroundSize = "240px 240px";
+    piece.style.backgroundPosition = `${-(n % 3) * 80}px ${-Math.floor(n / 3) * 80}px`;
+
+    piece.ondragstart = e => {
+      piece.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', piece.parentNode.dataset.pos);
+    };
+    piece.ondragend = () => piece.classList.remove('dragging');
+
+    const dropzone = document.createElement('div');
+    dropzone.className = 'puzzle-drop';
+    dropzone.dataset.pos = idx;
+    dropzone.ondragover = e => e.preventDefault();
+    dropzone.ondrop = e => {
+      e.preventDefault();
+      const fromIdx = +e.dataTransfer.getData('text/plain');
+      const toIdx = +dropzone.dataset.pos;
+      swapPuzzlePieces(fromIdx, toIdx);
+    };
+
+    dropzone.appendChild(piece);
+    board.appendChild(dropzone);
+  });
+}
+
+function swapPuzzlePieces(fromIdx, toIdx) {
+  const board = document.getElementById('puzzle-board');
+  const drops = Array.from(board.children);
+  const fromPiece = drops[fromIdx].firstChild;
+  const toPiece = drops[toIdx].firstChild;
+  drops[fromIdx].appendChild(toPiece);
+  drops[toIdx].appendChild(fromPiece);
+  checkPuzzleWin();
+}
+
+function checkPuzzleWin() {
+  const board = document.getElementById('puzzle-board');
+  const drops = Array.from(board.children);
+  let win = true;
+  drops.forEach((drop, i) => {
+    if (drop.firstChild.dataset.n != i) win = false;
+  });
+  if (win) {
+    document.getElementById('puzzle-message').textContent =
+      "Parabéns! Você montou o quebra-cabeça!";
+  }
+}
+
+// ----------------------
+// Atalho com Enter nos inputs de jogos
+// ----------------------
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    const activeInput = document.activeElement;
+    if (activeInput && activeInput.tagName === "INPUT") {
+      e.preventDefault();
+      const closestButton = activeInput.closest(".game-container")?.querySelector(".btn-enviar");
+      if (closestButton) {
+        closestButton.click();
       }
     }
+  }
+});
+
+// ----------------------
+// Função utilitária para embaralhar
+// ----------------------
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+
+// Escrever a Imagem
+const writeImgs = [
+  {src:"https://img.icons8.com/color/96/000000/apple--v1.png", nome:"maçã"},
+  {src:"https://img.icons8.com/color/96/000000/banana.png", nome:"banana"},
+  {src:"https://img.icons8.com/color/96/000000/grapes.png", nome:"uva"},
+  {src:"https://img.icons8.com/color/96/000000/watermelon.png", nome:"melancia"},
+  {src:"https://img.icons8.com/color/96/000000/dog.png", nome:"cachorro"},
+  {src:"https://img.icons8.com/color/96/000000/cat.png", nome:"gato"},
+  {src:"https://img.icons8.com/color/96/000000/car--v1.png", nome:"carro"},
+  {src:"https://img.icons8.com/color/96/000000/football.png", nome:"bola"},
+  {src:"https://img.icons8.com/color/96/000000/deciduous-tree.png", nome:"árvore"},
+  {src:"https://img.icons8.com/color/96/000000/book.png", nome:"livro"}
+];
+let writeIdx = 0;
+
+function checkWriteImg() {
+  const inputEl = document.getElementById('write-input');
+  const input = inputEl.value.trim().toLowerCase();
+  const result = document.getElementById('write-result');
+  const imgEl = document.getElementById('write-img');
+
+  if (input === writeImgs[writeIdx].nome) {
+    result.textContent = "Correto! Muito bem!";
+    result.style.color = "var(--verde-agua)";
+
+    setTimeout(() => {
+      writeIdx++;
+      if (writeIdx < writeImgs.length) {
+        imgEl.src = writeImgs[writeIdx].src;
+        inputEl.value = '';
+        result.textContent = '';
+      } else {
+        imgEl.style.display = "none";
+        inputEl.style.display = "none";
+        result.textContent = "🎉 Parabéns, você terminou todas as palavras!";
+        result.style.color = "var(--verde-agua)";
+      }
+    }, 1200);
+
+  } else {
+    result.textContent = "Tente novamente!";
+    result.style.color = "var(--rosa)";
+    inputEl.value = ''; // apaga automaticamente ao errar
+  }
+}
+
+// Faz o Enter funcionar igual ao botão
+document.getElementById('write-input').addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    checkWriteImg();
+  }
+});
+
     // Inicialização
     window.onload = fecharJogo;
   </script>
