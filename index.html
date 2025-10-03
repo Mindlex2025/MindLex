@@ -156,7 +156,7 @@
       width: 80%;
       box-shadow: 0 2px 12px rgba(56,189,248,0.08);
       position: relative;
-      z-index: 2;
+      z-index: 100;
     }
     nav a {
       color: var(--roxo);
@@ -206,7 +206,7 @@
       animation: fadein 0.5s;
       z-index: 1;
     }
-    h3 { color: var(--roxo); }
+    h3 { color: var(--branco); }
     .cards {
       display: flex;
       flex-wrap: wrap;
@@ -496,9 +496,6 @@
       text-align: center;
       margin: auto;
     }
-    .btn-quebra {
-    color: red; /* muda só a cor do texto do botão */
-    }
   </style>
 </head>
 <body>
@@ -593,8 +590,7 @@
         </div>
       </div>
       <div id="modal-puzzle" class="game-modal">
-        <div class="game-content">
-         <button class="btn-quebra" onclick="abrirModal('quebra-cabeca')">Quebra-Cabeça</button>
+        <div class="game-content">      
           <h3 style="color:var(--roxo);">Quebra-Cabeça</h3>
           <p>Arraste as peças para montar a imagem!</p>
           <div class="puzzle-board" id="puzzle-board"></div>
@@ -881,10 +877,8 @@ const puzzleImgs = [
   "https://img.icons8.com/color/96/000000/dog.png",             // cachorro
   "https://img.icons8.com/color/96/000000/cat.png",             // gato
   "https://img.icons8.com/color/96/000000/car--v1.png",         // carro
-  "https://img.icons8.com/color/96/000000/football.png",        // bola
   "https://img.icons8.com/color/96/000000/deciduous-tree.png",  // árvore
   "https://img.icons8.com/color/96/000000/book.png",            // livro
-  "https://img.icons8.com/color/96/000000/house.png",           // casa
   "https://img.icons8.com/color/96/000000/sun.png",             // sol
   "https://img.icons8.com/color/96/000000/moon-symbol.png"      // lua
 ];
@@ -994,7 +988,6 @@ const writeImgs = [
   {src:"https://img.icons8.com/color/96/000000/dog.png", nome:"cachorro"},
   {src:"https://img.icons8.com/color/96/000000/cat.png", nome:"gato"},
   {src:"https://img.icons8.com/color/96/000000/car--v1.png", nome:"carro"},
-  {src:"https://img.icons8.com/color/96/000000/football.png", nome:"bola"},
   {src:"https://img.icons8.com/color/96/000000/deciduous-tree.png", nome:"árvore"},
   {src:"https://img.icons8.com/color/96/000000/book.png", nome:"livro"}
 ];
